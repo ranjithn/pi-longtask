@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { acquireLock, aborted, command, errorText, exists, invariant, noSymlinks, now, sleep, within } from './util.mjs';
@@ -24,7 +23,7 @@ export class Engine {
     invariant(this.state.approval, 'Run /longtask preflight and /longtask approve first');
     const current = await loadConfig(this.loaded.configPath, this.repo.root);
     const snapshot = await inputSnapshot(current, this.repo.root);
-    this.gitConfig = { ...this.config, immutablePaths: [...Object.keys(snapshot.contents), path.relative(this.repo.root, this.loaded.configPath).replaceAll('\\', '/')] };
+    this.gitConfig = { ...this.config, immutablePaths: ['AGENTS.md', ...Object.keys(snapshot.contents), path.relative(this.repo.root, this.loaded.configPath).replaceAll('\\', '/')] };
     invariant(snapshot.digest === this.state.approval.digest, 'Approved plan, decisions, AGENTS.md or config changed. Restore the approved inputs before resuming; do not silently change a running campaign.');
   }
   async approve(confirm, signal) {
@@ -286,7 +285,9 @@ export class Engine {
       }
       case 'cleanup': {
         invariant(await this.repo.remoteSha(this.config.remote, wp.branch, signal) === wp.commit, 'Remote source changed before cleanup');
+        invariant(await this.repo.sha(`refs/heads/${wp.branch}`) === wp.commit, 'Local source changed before cleanup');
         if (this.config.cleanup) await this.repo.cleanup(wp, this.loaded.worktreeRoot, signal);
+        else { await this.repo.assertIdentity(wp); await this.repo.assertClean(wp.worktree); }
         wp.status = 'complete'; wp.phase = 'done'; wp.completedAt = now(); this.state.current++;
         await this.store.save({ type: 'wp-complete', wp: wp.id, mr: wp.mr, commit: wp.commit });
         await this.onCheckpoint(wp, this.config.compactBetweenWps);

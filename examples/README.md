@@ -1,7 +1,7 @@
-# Examples are not inferred repository configuration
+# Example campaign
 
-`longtask.json` illustrates the requested WP00–WP08 stack with Elixir and a hypothetical `apps/web` frontend. Confirm the actual commands, frontend path, dependency installation behavior, browser installation and test database settings before copying any entry. In particular, `MIX_ENV=test` by itself does not prove database isolation.
+`longtask.json` illustrates a two-package campaign on `main` with npm tests and optional Playwright acceptance. Commands are placeholders for a hypothetical project, not detected repository configuration. Adapt the commands, working directories, dependency setup, browser configuration and isolated test storage before approving.
 
-The normal `/longtask init` command deliberately generates empty setup/check lists instead of these guessed commands. The bundled skill can inspect your repository and help fill them.
+`/longtask init` generates empty setup/check lists rather than guessing commands. The bundled skill can inspect your repository and help configure them.
 
-`RUNBOOK.md` and `decisions.md` can be copied/adapted before approval, but are not required controller filenames except for the configured decisions path. The deterministic implementation is authoritative for lifecycle and gates; prose cannot bypass it.
+Copy/adapt `RUNBOOK.md` and `decisions.md` as needed. Only the configured decisions filename is required. The controller's lifecycle and verification gates remain authoritative.

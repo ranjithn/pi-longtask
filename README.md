@@ -2,7 +2,7 @@
 
 **An installable Pi extension and companion skill for checkpointed, long-running engineering campaigns.**
 
-Version **0.1.0**. No npm runtime dependencies. Node **20.11 or newer**. Intended for macOS/Linux; tested here on Linux with Node 22.16.0.
+Version **0.1.0**. MIT licensed, with no npm runtime dependencies. Node **22.19 or newer** for current Pi releases. Intended for macOS/Linux. Compatibility checked against **Pi 1.4.0** and **pi-subagents 0.80.0**; see [validation details](docs/testing.md).
 
 The controller owns sequencing, Git worktrees, stacked GitLab merge requests, verification gates, cancellation and durable state. Your installed **pi-subagents** owns child execution. There is no second subagent launcher, no private upstream import, and no dependency on pi-goal.
 
@@ -10,15 +10,13 @@ The controller owns sequencing, Git worktrees, stacked GitLab merge requests, ve
 
 ## Install
 
-Extract the release ZIP into a permanent directory, then register that directory with Pi:
+Install from the source repository:
 
 ```bash
-mkdir -p "$HOME/.pi/local-packages"
-unzip "$HOME/Downloads/pi-longtask-0.1.0.zip" -d "$HOME/.pi/local-packages"
-pi install "$HOME/.pi/local-packages/pi-longtask"
+pi install git:github.com/ranjithn/pi-longtask
 ```
 
-This is a **local package**, not a published npm package. Do not run `pi install npm:pi-longtask`. Pi loads local packages in place; keep this directory after installation. No `npm install`, build step, or global Node module linking is needed for this package. Restart Pi or run `/reload` after installing it.
+For local development, clone the repository and run `pi install /absolute/path/to/pi-longtask`. Pi loads local packages in place, so keep that checkout after installation. This package is not published to npm; do not use `pi install npm:pi-longtask`. No build step or global module linking is needed. Restart Pi or run `/reload` after installing.
 
 Your installed `pi-subagents` must expose the public runtime-agent-registration v1 and owned structured-delegation APIs. Older versions may not. Check:
 
@@ -31,39 +29,41 @@ Your installed `pi-subagents` must expose the public runtime-agent-registration 
 
 Already-installed pi-subagents can remain installed alongside this package. Installation for a system without it is `pi install npm:pi-subagents`. Pause any existing `/goal` execution before starting this controller; both should not own the same campaign.
 
-## Your WP00–WP08 workflow
+## Quick start
 
-Start Pi in the existing `refactor/arch` checkout. Initialize the plan:
+Create a plan directory with ordered work-package specifications, such as `WP00.md` and `WP01.md`. Start Pi in your base-branch checkout, then initialize the campaign:
 
 ```text
-/longtask init plans/arch-simplification --base refactor/arch --from WP00 --to WP08
+/longtask init plans/my-campaign --base main
 ```
 
-Defaults match the requested workflow:
+Use `--base` for a different base branch and optional `--from WP00 --to WP01` to select a range.
 
 | Setting | Default |
 | --- | --- |
-| Base branch | `refactor/arch` |
-| WP branches | `dev/refactor-arch/00` through `dev/refactor-arch/08` |
-| Worktree root | `../brahma00.wt`, resolved relative to the repository root |
+| Base branch | `main` |
+| WP branches | `longtask/<campaign-id>/<WP suffix>`, e.g. `longtask/my-campaign/00` |
+| Worktree root | `../.pi-longtask-worktrees`, resolved relative to the repository root |
 | Worktree directory | `<campaign-id>-wp00`, then `-wp01`, etc. |
-| First MR target | `refactor/arch` |
+| First MR target | The configured base branch |
 | Later MR targets | The previous WP branch |
 | Remote | `origin` |
 | Worktree cleanup | After local checks, reviews, MR, exact-commit CI and checkpoint |
+
+Override branch and worktree naming with `--branch-prefix` and `--worktree-root`. Existing configurations keep their explicit settings.
 
 `init` discovers files such as `WP00.md`, `WP00-foundations.md`, or `WP00/README.md`. Ambiguous IDs and missing requested WPs are rejected. Plans with another layout can use explicit `workPackages` entries in a hand-written `longtask.json`, then `/longtask use <plan-dir>`.
 
 ### 1. Configure actual repository commands
 
-`init` writes `plans/arch-simplification/longtask.json` and creates `decisions.md` only when it is absent. It never overwrites an existing config.
+`init` writes `plans/my-campaign/longtask.json` and creates `decisions.md` only when it is absent. It never overwrites an existing config.
 
-**Generated test command lists are intentionally empty.** This package has not inspected your private repository and does not guess its test commands, frontend directory or database settings. Approval refuses a WP with no configured verification check.
+**Generated test command lists are intentionally empty.** This package has not inspected your repository and does not guess its test commands, frontend directory or database settings. Approval refuses a WP with no configured verification check.
 
 Use the bundled skill to help prepare this configuration:
 
 ```text
-/skill:longtask Inspect this repository and configure plans/arch-simplification/longtask.json for WP00 through WP08. Use the actual project test commands and Playwright setup. Keep the existing Medplum and MedGemma services unchanged, and use an isolated test database. Do not start execution.
+/skill:longtask Inspect this repository and configure plans/my-campaign/longtask.json. Use the actual project verification commands and browser tests where needed. Preserve shared services and use isolated test data. Do not start execution.
 ```
 
 The skill assists the parent Pi with configuration and interpretation. The extension, not the skill or parent model, runs the campaign. Slash commands below are entered in Pi, not a shell.
@@ -79,14 +79,14 @@ Preflight is a read-only agent audit of every listed plan input. It returns ques
 
 ### 2. Commit and push the approved inputs
 
-The original checkout must be clean, on `refactor/arch`, and its local/remote heads must agree. Commit the plan, config, decisions and any other intended initial changes, then push the base branch. Review the actual diff rather than blindly staging unrelated files.
+The original checkout must be clean, on the configured base branch, and its local/remote heads must agree. Commit the plan, config, decisions and any other intended initial changes, then push the base branch. Review the actual diff rather than blindly staging unrelated files.
 
 For example, after reviewing the files:
 
 ```bash
-git add plans/arch-simplification
-git commit -m "Define approved architecture-refactor campaign"
-git push origin refactor/arch
+git add plans/my-campaign
+git commit -m "Define approved work-package campaign"
+git push origin main
 ```
 
 Approval fingerprints the configuration, plan Markdown/text/JSON files and root `AGENTS.md`, and keeps a local snapshot. Do not modify these inputs once approved. Use a new campaign ID and branch prefix for a revised plan rather than editing state to bypass this rule.
@@ -179,7 +179,7 @@ Keep the Pi process running during execution. This package is not a daemon or a 
 ## Important boundaries
 
 - **Not an OS sandbox.** Worker `bash`, test commands and trusted extensions have the normal user's permissions and inherited credentials. Scope prompts, allowlists and Git checks are guardrails, not protection against malicious code. Use an isolated development environment and synthetic/test data.
-- **Shared services are not test fixtures.** No auto-reset of Medplum, shared Postgres, or MedGemma. Configure a separate test database/schema before authorizing checks. Read-only runtime prompts alone cannot enforce this against arbitrary shell access.
+- **Shared services are not test fixtures.** No automatic restart, reset or migration of shared services or production databases. Configure a separate test database/schema before authorizing checks. Read-only runtime prompts alone cannot enforce this against arbitrary shell access.
 - **Cleanup removes the owned worktree directory**, including ignored build/dependency artifacts. Do not put unique data, database storage, hand-created credentials or important untracked/ignored files there. Set `cleanup: false` when preservation matters. The controller never force-removes a dirty/locked worktree or deletes its Git branch.
 - **GitLab same-project MRs only.** No forks, submodules, auto-merge, auto-rebase, automatic target retargeting, branch deletion or force push. Nested/self-hosted GitLab namespaces are supported for conventional HTTPS/SSH remotes, but custom subpath installations and unusual host formats are not verified.
 - **CI is conservative.** v0.1 accepts successful pipelines whose SHA equals the pushed source SHA. Missing, stale, skipped and manual-only gates are not success. Synthetic merged-results-only pipelines are unsupported and will wait then block. Required named jobs can be configured; this is not a replacement for GitLab's protected-branch/approval policies.
@@ -200,9 +200,13 @@ Compaction is disabled by default because children have fresh contexts and progr
 ## Test and inspect the package
 
 ```bash
-cd "$HOME/.pi/local-packages/pi-longtask"
+cd /path/to/pi-longtask
 npm run check
 npm test
 ```
 
-No dependency installation is needed. See [testing](docs/testing.md), [architecture](docs/architecture.md), [compatibility and sources](docs/compatibility.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+No dependency installation is needed for the default suite. See [testing](docs/testing.md) for the optional installed-release smoke test, [architecture](docs/architecture.md), [compatibility and sources](docs/compatibility.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## License
+
+[MIT](LICENSE) © 2026 Ranjith Narayanan and pi-longtask contributors. Contributions are welcome under the same license. External tools retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).

@@ -1,6 +1,8 @@
 # Compatibility and upstream references
 
-Public API sources inspected on **October 3, 2026**. Upstream main branches are moving references. The package does not claim compatibility with every historical Pi or pi-subagents release.
+Latest published releases checked on **October 22, 2026**: **Pi 1.4.0** (`@earendil-works/pi-coding-agent`) and **pi-subagents 0.80.0**. Versions were confirmed through npm metadata and web release/package pages; API contracts were checked against the installed release files. The optional [compatibility smoke test](testing.md) loads both real extensions and executes all six registered roles with a deterministic, local model provider. No paid provider or authenticated GitLab call is involved.
+
+Upstream main branches are moving references. This is a tested release pair, not a guarantee for all historical or future versions. Current npm Pi requires Node **22.19.0+**.
 
 ## Required Pi surface
 
@@ -13,6 +15,8 @@ Public API sources inspected on **October 3, 2026**. Upstream main branches are 
 
 References:
 
+- https://pi.dev/changelog/releases/1.4.0
+- https://registry.npmjs.org/@earendil-works/pi-coding-agent/1.4.0
 - https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/extensions.md
 - https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/packages.md
 - https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md
@@ -20,7 +24,7 @@ References:
 
 ## Required pi-subagents surface
 
-The inspected repository package identified itself as 0.75.0. This is a source-reference observation, **not a tested minimum version or proof that a particular npm release contains the same source**. Capabilities are checked at runtime; actual child execution must be tried locally.
+Runtime registration and owned structured delegation were exercised with the published **0.80.0** package under **Pi 1.4.0**. The protocol remains compatible; no private imports, legacy delegation fallback, or second launcher are needed. Capabilities are still checked at runtime, and real provider/tool configuration must be piloted locally.
 
 - RPC `subagents:rpc:v1:request` with `ping` and per-request reply event.
 - Runtime registration `pi-subagents:runtime-agent-register:v1` with synchronous request result and disposable registrations.
@@ -31,6 +35,8 @@ The direct event contract is deliberate: independently installed Pi packages are
 
 References:
 
+- https://pi.dev/packages/pi-subagents
+- https://registry.npmjs.org/pi-subagents/0.80.0
 - https://github.com/nicobailon/pi-subagents/blob/main/docs/extension-api.md
 - https://github.com/nicobailon/pi-subagents/blob/main/src/api/delegation.ts
 - https://github.com/nicobailon/pi-subagents/blob/main/src/agents/runtime-agent-registry.ts

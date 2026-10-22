@@ -1,123 +1,45 @@
 {
   "version": 1,
+  "id": "my-campaign",
+  "baseBranch": "main",
+  "branchPrefix": "longtask/my-campaign",
   "remote": "origin",
+  "worktreeRoot": "../.pi-longtask-worktrees",
   "decisions": "decisions.md",
+  "infrastructure": "Do not restart or reconfigure shared services. Use isolated test databases, storage and synthetic data; never reset or migrate shared or production data.",
   "setup": [
     {
-      "name": "Elixir dependencies",
-      "command": [
-        "mix",
-        "deps.get"
-      ],
-      "timeoutSeconds": 900
-    },
-    {
-      "name": "Frontend dependencies (adapt directory)",
+      "name": "Install dependencies (adapt to your project)",
       "command": [
         "npm",
         "ci"
       ],
-      "cwd": "apps/web",
       "timeoutSeconds": 900
     }
   ],
   "checks": [
     {
-      "name": "Elixir format check",
+      "name": "Project tests (adapt to your project)",
       "command": [
-        "mix",
-        "format",
-        "--check-formatted"
-      ],
-      "timeoutSeconds": 300
-    },
-    {
-      "name": "Elixir tests",
-      "command": [
-        "mix",
+        "npm",
         "test"
       ],
-      "timeoutSeconds": 1800,
-      "env": {
-        "MIX_ENV": "test"
-      }
+      "timeoutSeconds": 1800
     }
   ],
   "uiChecks": [
     {
-      "name": "Playwright acceptance (adapt directory)",
+      "name": "Browser acceptance (requires project Playwright configuration)",
       "command": [
         "npx",
         "--no-install",
         "playwright",
         "test"
       ],
-      "cwd": "apps/web",
       "timeoutSeconds": 1800
     }
   ],
-  "uiPaths": [
-    "**/*.tsx",
-    "**/*.jsx",
-    "**/*.css",
-    "**/*.html",
-    "**/*.vue",
-    "**/*.svelte",
-    "**/frontend/**",
-    "**/client/**"
-  ],
-  "denyPaths": [
-    ".env",
-    "**/.env",
-    "**/.env.*",
-    "**/*.pem",
-    "**/*.key",
-    "**/*.p12",
-    "**/*.pfx",
-    "**/id_rsa",
-    "**/id_ed25519"
-  ],
-  "allowSensitivePaths": [],
   "cleanup": true,
-  "compactBetweenWps": false,
-  "infrastructure": "Medplum and MedGemma are already running. Do not restart or reconfigure them. PostgreSQL runs in Docker for Medplum. Tests must use a separate explicitly configured test database/schema; never reset the Medplum database.",
-  "agents": {
-    "workerTools": [
-      "read",
-      "grep",
-      "find",
-      "ls",
-      "write",
-      "edit",
-      "bash"
-    ],
-    "reviewerTools": [
-      "read",
-      "grep",
-      "find",
-      "ls"
-    ],
-    "workerExtensions": [],
-    "models": {},
-    "thinking": "high"
-  },
-  "limits": {
-    "maxAgentCallsPerWp": 24,
-    "maxRepairsPerWp": 4,
-    "maxNoProgressRepairs": 2,
-    "agentTimeoutMinutes": 30,
-    "maxToolCallsPerAgent": 120,
-    "maxCostUsdPerWp": null
-  },
-  "ci": {
-    "timeoutMinutes": 30,
-    "pollSeconds": 20,
-    "requiredJobs": []
-  },
-  "id": "arch-simplification",
-  "baseBranch": "refactor/arch",
-  "branchPrefix": "dev/refactor-arch",
-  "worktreeRoot": "../brahma00.wt",
   "workPackages": [
     {
       "id": "WP00",
@@ -126,34 +48,6 @@
     {
       "id": "WP01",
       "file": "WP01.md"
-    },
-    {
-      "id": "WP02",
-      "file": "WP02.md"
-    },
-    {
-      "id": "WP03",
-      "file": "WP03.md"
-    },
-    {
-      "id": "WP04",
-      "file": "WP04.md"
-    },
-    {
-      "id": "WP05",
-      "file": "WP05.md"
-    },
-    {
-      "id": "WP06",
-      "file": "WP06.md"
-    },
-    {
-      "id": "WP07",
-      "file": "WP07.md"
-    },
-    {
-      "id": "WP08",
-      "file": "WP08.md"
     }
   ]
 }

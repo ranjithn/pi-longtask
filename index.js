@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Repo } from './src/git.mjs';
 import { loadConfig, initializeConfig } from './src/config.mjs';
@@ -8,8 +7,8 @@ import { Engine } from './src/engine.mjs';
 import { atomicJson, errorText, exists, invariant, now, readJson, removeDeadLock, splitArgs, within, acquireLock } from './src/util.mjs';
 
 const HELP = `pi-longtask 0.1.0
-/longtask init <plan-dir> [--base refactor/arch] [--from WP00 --to WP08]
-    [--branch-prefix dev/refactor-arch] [--worktree-root ../brahma00.wt]
+/longtask init <plan-dir> [--base main] [--from WP00 --to WP01]
+    [--branch-prefix longtask/<campaign-id>] [--worktree-root ../.pi-longtask-worktrees]
 /longtask use <plan-dir>       Select an existing longtask.json
 /longtask doctor              Check Pi/subagents/Git/glab and show available tools
 /longtask dry-run             Show the branch stack and configured commands; run nothing
