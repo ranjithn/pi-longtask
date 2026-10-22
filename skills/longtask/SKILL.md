@@ -9,6 +9,10 @@ The extension owns execution. This skill helps the parent Pi prepare configurati
 
 Read the relevant sections of `../../README.md` and `../../docs/configuration.md` from this skill's directory when you need exact configuration semantics. They are bundled within the same package.
 
+## Installation
+
+When installation is needed, have the owner run `pi install https://github.com/ranjithn/pi-longtask` in their shell. Pi manages the public GitHub package; do not recommend an npm package or ZIP for pi-longtask. The separate required companion is `pi install npm:pi-subagents` if not already installed. Restart Pi or run `/reload`, then check `/longtask doctor`. See `../../README.md` for project-local installation and updates. Do not update an active campaign's extension runtime.
+
 ## Prepare a campaign
 
 1. Inspect the entire requested plan, root/nested `AGENTS.md`, build scripts, CI files, test configuration, package scripts and existing Playwright setup. Use the real repository commands and directories. Do not invent commands from a language guess.

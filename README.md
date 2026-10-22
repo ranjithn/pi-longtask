@@ -10,13 +10,27 @@ The controller owns sequencing, Git worktrees, stacked GitLab merge requests, ve
 
 ## Install
 
-Install from the source repository:
+Install directly from the public [GitHub repository](https://github.com/ranjithn/pi-longtask):
 
 ```bash
-pi install git:github.com/ranjithn/pi-longtask
+pi install https://github.com/ranjithn/pi-longtask
+
+# Required companion extension, if not already installed:
+pi install npm:pi-subagents
 ```
 
-For local development, clone the repository and run `pi install /absolute/path/to/pi-longtask`. Pi loads local packages in place, so keep that checkout after installation. This package is not published to npm; do not use `pi install npm:pi-longtask`. No build step or global module linking is needed. Restart Pi or run `/reload` after installing.
+Pi clones and manages the GitHub package, including its extension and companion skill. No manual clone, ZIP download, build step, or global module linking is needed. This package is not published to npm. Restart Pi or run `/reload` after installation.
+
+The command above installs for your user. To install only for the current project, use `pi install --local https://github.com/ranjithn/pi-longtask`; project packages load after project trust is granted.
+
+To update or remove the GitHub installation:
+
+```bash
+pi update https://github.com/ranjithn/pi-longtask
+pi remove https://github.com/ranjithn/pi-longtask
+```
+
+Stop any active campaign before updating, then restart Pi or run `/reload`. For a project-local installation, add `--local` when removing it.
 
 Your installed `pi-subagents` must expose the public runtime-agent-registration v1 and owned structured-delegation APIs. Older versions may not. Check:
 
@@ -27,7 +41,7 @@ Your installed `pi-subagents` must expose the public runtime-agent-registration 
 
 `doctor` performs an RPC ping and reports Git/glab/tool availability. It does **not** spend model tokens or validate a complete child launch. `/longtask preflight` exercises runtime registration and actual structured delegation. Unsupported APIs stop with an error; there is no silent fallback to invented tools.
 
-Already-installed pi-subagents can remain installed alongside this package. Installation for a system without it is `pi install npm:pi-subagents`. Pause any existing `/goal` execution before starting this controller; both should not own the same campaign.
+Already-installed pi-subagents can remain installed alongside this package; it is a separate required extension, not bundled here. Pause any existing `/goal` execution before starting this controller; both should not own the same campaign.
 
 ## Quick start
 
@@ -198,6 +212,8 @@ Browser acceptance is normally a **configured Playwright CLI command**, not a pr
 Compaction is disabled by default because children have fresh contexts and progress is persisted. `compactBetweenWps: true` requests parent compaction only after a safe WP checkpoint. It does not replace durable state.
 
 ## Test and inspect the package
+
+For development, clone [the repository](https://github.com/ranjithn/pi-longtask) and optionally register that checkout with `pi install /absolute/path/to/pi-longtask`. Local-path installs load in place, so retain the checkout. Normal installation uses the managed GitHub package above.
 
 ```bash
 cd /path/to/pi-longtask

@@ -4,6 +4,10 @@ Latest published releases checked on **October 22, 2026**: **Pi 1.4.0** (`@earen
 
 Upstream main branches are moving references. This is a tested release pair, not a guarantee for all historical or future versions. Current npm Pi requires Node **22.19.0+**.
 
+## Installation source
+
+Install the public repository directly with `pi install https://github.com/ranjithn/pi-longtask`. Pi manages it as a Git package; no manual checkout or npm publication is required. Install `pi-subagents` separately with `pi install npm:pi-subagents` if needed. See [installation and updates](../README.md#install) for project scope and package management.
+
 ## Required Pi surface
 
 - JS ESM extension factory, `registerCommand`, `on`, `events`.
@@ -11,7 +15,7 @@ Upstream main branches are moving references. This is a tested release pair, not
 - Context `cwd`, `hasUI`, `isIdle`; optional project-trust guard.
 - `session_start`, `session_shutdown`, `session_before_switch`, `session_before_fork`, `session_before_tree`.
 - Optional `compact` callback API when explicitly configured.
-- Package manifest `pi.extensions` and `pi.skills`, local directory installation.
+- Package manifest `pi.extensions` and `pi.skills`, GitHub/Git package installation (local-path loading is optional for development).
 
 References:
 
