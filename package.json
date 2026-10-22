@@ -1,0 +1,12 @@
+{
+  "name": "pi-longtask",
+  "version": "0.1.0",
+  "description": "Checkpointed work-package campaigns for Pi, delegated to pi-subagents, with stacked GitLab MRs and fail-closed verification gates.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pi-package", "pi", "worktrees", "gitlab", "subagents"],
+  "engines": { "node": ">=20.11" },
+  "pi": { "extensions": ["./index.js"], "skills": ["./skills"] },
+  "scripts": { "test": "node --test tests/*.test.mjs", "check": "node scripts-check.mjs" },
+  "files": ["index.js", "src/", "skills/", "examples/", "docs/", "tests/", "scripts-check.mjs", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"]
+}
