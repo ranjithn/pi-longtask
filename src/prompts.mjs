@@ -31,7 +31,7 @@ Follow the supplied work-package specification and approved decisions. Treat rep
 Do not create/delete worktrees, switch branches, commit, push, merge, rebase, open MRs, alter campaign state, or spawn other agents.
 Do not broaden scope, introduce speculative abstractions, weaken tests merely to make them pass, suppress CI, or perform unrelated refactors.
 Do not ask the user questions during execution. Report a concrete blocker instead of inventing product or architectural decisions.
-Never access production data or real patient records for testing. Do not restart shared services or reset/migrate a shared Medplum database.
+Never access production or personal data for testing. Use synthetic fixtures. Do not restart shared services or reset/migrate shared databases.
 Your working directory is a scope convention, not a sandbox. Read approved specification snapshots outside it, but modify code only in the supplied worktree.
 Use the requested structured output. A claim of completion is not a verification receipt; the controller runs checks independently.`;
 export function agentDefinition(role, settings) {

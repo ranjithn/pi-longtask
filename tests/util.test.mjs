@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { acquireLock, atomicJson, command, matchGlob, readJson, relativePath, splitArgs, within } from '../src/util.mjs';
-import { DEFAULTS, validateConfig, discoverWps } from '../src/config.mjs';
+import { DEFAULTS, validateConfig, discoverWps, initializeConfig, loadConfig } from '../src/config.mjs';
 import { remoteIdentity, classifyPipeline, assertMr } from '../src/gitlab.mjs';
 import { SCHEMAS, validateResult } from '../src/prompts.mjs';
 
@@ -44,11 +44,25 @@ test('config rejects implicit shell commands, unbounded limits and writable revi
   assert.throws(() => validateConfig({ ...c, magicalSetting: true }));
 });
 test('WP discovery sorts numeric IDs and refuses ambiguous or missing packages', async t => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'longtask-plan-')); t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const dir = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'longtask-plan-')); t.after(() => fs.rm(dir, { recursive: true, force: true }));
   for (const name of ['WP02-tests.md', 'WP00.md', 'WP01.md']) await fs.writeFile(path.join(dir, name), '# WP');
   assert.deepEqual((await discoverWps(dir, 'WP00', 'WP02')).map(x => x.id), ['WP00', 'WP01', 'WP02']);
   await assert.rejects(discoverWps(dir, 'WP00', 'WP03'), /Missing WP03/);
   await fs.writeFile(path.join(dir, 'WP01-alternative.md'), 'duplicate'); await assert.rejects(discoverWps(dir), /Ambiguous WP01/);
+});
+test('init generates generic defaults and never overwrites an existing config', async t => {
+  const root = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'longtask-init-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const plan = path.join(root, 'plans', 'demo');
+  await fs.mkdir(plan, { recursive: true });
+  await fs.writeFile(path.join(plan, 'WP00.md'), '# Work package\n');
+  const file = await initializeConfig(root, 'plans/demo');
+  const { config } = await loadConfig(file, root);
+  assert.equal(config.baseBranch, 'main');
+  assert.equal(config.branchPrefix, 'longtask/demo');
+  assert.equal(config.worktreeRoot, '../.pi-longtask-worktrees');
+  assert.deepEqual(config.checks, []);
+  await assert.rejects(initializeConfig(root, 'plans/demo'), /already exists/);
 });
 test('GitLab project identity is tied to the push remote', () => {
   assert.deepEqual(remoteIdentity('git@gitlab.example.com:group/sub/repo.git'), { host: 'gitlab.example.com', project: 'group/sub/repo' });

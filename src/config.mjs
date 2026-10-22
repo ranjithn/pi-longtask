@@ -7,7 +7,7 @@ export const DEFAULTS = {
   uiPaths: ['**/*.tsx', '**/*.jsx', '**/*.css', '**/*.html', '**/*.vue', '**/*.svelte', '**/frontend/**', '**/client/**'],
   denyPaths: ['.env', '**/.env', '**/.env.*', '**/*.pem', '**/*.key', '**/*.p12', '**/*.pfx', '**/id_rsa', '**/id_ed25519'],
   allowSensitivePaths: [], cleanup: true, compactBetweenWps: false,
-  infrastructure: 'Medplum and MedGemma are already running. Do not restart or reconfigure them. PostgreSQL runs in Docker for Medplum. Tests must use a separate explicitly configured test database/schema; never reset the Medplum database.',
+  infrastructure: 'Do not restart or reconfigure shared services. Use isolated test databases, storage and synthetic data; never reset or migrate shared or production data.',
   agents: {
     workerTools: ['read', 'grep', 'find', 'ls', 'write', 'edit', 'bash'],
     reviewerTools: ['read', 'grep', 'find', 'ls'], workerExtensions: [],
@@ -136,7 +136,7 @@ export async function initializeConfig(repo, planDir, opts = {}) {
   const file = path.join(absolute, 'longtask.json'); invariant(!await exists(file), `Config already exists: ${file}`);
   const id = path.basename(absolute).replace(/[^a-zA-Z0-9._-]/g, '-');
   const workPackages = await discoverWps(absolute, opts.from ?? 'WP00', opts.to);
-  const config = validateConfig({ ...structuredClone(DEFAULTS), id, baseBranch: opts.base ?? 'refactor/arch', branchPrefix: opts.branchPrefix ?? 'dev/refactor-arch', worktreeRoot: opts.worktreeRoot ?? '../brahma00.wt', workPackages });
+  const config = validateConfig({ ...structuredClone(DEFAULTS), id, baseBranch: opts.base ?? 'main', branchPrefix: opts.branchPrefix ?? `longtask/${id}`, worktreeRoot: opts.worktreeRoot ?? '../.pi-longtask-worktrees', workPackages });
   if (!await exists(path.join(absolute, config.decisions))) await fs.writeFile(path.join(absolute, config.decisions), '# Approved decisions\n\nRecord the answers to preflight questions here before approving the campaign.\n', { flag: 'wx' });
   await atomicJson(file, config);
   return file;

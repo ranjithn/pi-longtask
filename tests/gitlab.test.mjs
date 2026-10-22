@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GitLab } from '../src/gitlab.mjs';
 
-const wp = { branch: 'dev/refactor/00', target: 'refactor/arch', commit: 'a'.repeat(40), mr: { iid: 7 } };
+const wp = { branch: 'longtask/demo/00', target: 'main', commit: 'a'.repeat(40), mr: { iid: 7 } };
 const mr = () => ({ iid: 7, source_branch: wp.branch, target_branch: wp.target, source_project_id: 19, target_project_id: 19, state: 'opened', sha: wp.commit, has_conflicts: false, web_url: 'https://gitlab.example.test/acme/repo/-/merge_requests/7', head_pipeline: { id: 9, sha: wp.commit, status: 'success' } });
 function client(handler) {
   const calls = [];
@@ -27,7 +27,7 @@ test('GitLab creation uses explicit host, typed booleans, and re-reads the MR', 
 });
 test('GitLab duplicate recovery reuses an existing MR and rejects a wrong target', async () => {
   let wrong = false;
-  const { c, calls } = client(async endpoint => endpoint.includes('state=all') ? [{ iid: 7 }] : { ...mr(), target_branch: wrong ? 'main' : wp.target });
+  const { c, calls } = client(async endpoint => endpoint.includes('state=all') ? [{ iid: 7 }] : { ...mr(), target_branch: wrong ? 'unexpected-target' : wp.target });
   await c.ensureMr(wp, 'WP00', 'approved');
   assert.ok(calls.every(x => !x.argv.includes('POST')));
   wrong = true; await assert.rejects(c.ensureMr(wp, 'WP00', 'approved'), /incorrect source\/target/);

@@ -36,10 +36,10 @@ export class FakeGitLab {
   }
 }
 export async function fixture(t, { count = 2, configPatch = {}, worker } = {}) {
-  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'pi-longtask-test-')); t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  const temp = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'pi-longtask-test-')); t.after(() => fs.rm(temp, { recursive: true, force: true }));
   const root = path.join(temp, 'repo'); const remote = path.join(temp, 'remote.git');
   await fs.mkdir(root); await command(['git', 'init', '--bare', remote], { cwd: temp });
-  await command(['git', 'init', '-b', 'refactor/arch'], { cwd: root });
+  await command(['git', 'init', '-b', 'main'], { cwd: root });
   await command(['git', 'config', 'user.name', 'Longtask Test'], { cwd: root });
   await command(['git', 'config', 'user.email', 'test@example.test'], { cwd: root });
   await command(['git', 'remote', 'add', 'origin', remote], { cwd: root });
@@ -48,9 +48,9 @@ export async function fixture(t, { count = 2, configPatch = {}, worker } = {}) {
   await fs.writeFile(path.join(plan, 'decisions.md'), '# Decisions\nAll tests use isolated fixture data.\n');
   const workPackages = Array.from({ length: count }, (_, i) => { const id = `WP${String(i).padStart(2, '0')}`; return { id, file: `${id}.md` }; });
   for (const w of workPackages) await fs.writeFile(path.join(plan, w.file), `# ${w.id}\nImplement the scoped fixture change.\n`);
-  const config = { ...structuredClone(DEFAULTS), id: 'arch', baseBranch: 'refactor/arch', branchPrefix: 'dev/refactor-arch', worktreeRoot: '../trees', workPackages, checks: [{ name: 'fixture check', command: [process.execPath, '-e', 'process.exit(0)'] }], ...configPatch };
+  const config = { ...structuredClone(DEFAULTS), id: 'arch', baseBranch: 'main', branchPrefix: 'longtask/arch', worktreeRoot: '../trees', workPackages, checks: [{ name: 'fixture check', command: [process.execPath, '-e', 'process.exit(0)'] }], ...configPatch };
   const configPath = path.join(plan, 'longtask.json'); await atomicJson(configPath, config);
-  await command(['git', 'add', '.'], { cwd: root }); await command(['git', 'commit', '-m', 'base'], { cwd: root }); await command(['git', 'push', '-u', 'origin', 'refactor/arch'], { cwd: root });
+  await command(['git', 'add', '.'], { cwd: root }); await command(['git', 'commit', '-m', 'base'], { cwd: root }); await command(['git', 'push', '-u', 'origin', 'main'], { cwd: root });
   const repo = await Repo.open(root); const subagents = new FakeSubagents(worker); const gitlab = new FakeGitLab(); const notices = [];
   async function engine() {
     const loaded = await loadConfig(configPath, root); const store = new Store(repo, config.id); await store.load(configPath);

@@ -8,7 +8,7 @@
 | --- | --- |
 | `version` | Must be `1`. |
 | `id` | Unique repository-local campaign ID, 1–80 safe characters. Reusing an ID for another config path is rejected. |
-| `baseBranch` | Existing local and remote base, e.g. `refactor/arch`. |
+| `baseBranch` | Existing local and remote base; `init` defaults to `main`. |
 | `branchPrefix` | WP branches become `<prefix>/<numeric WP suffix>`. |
 | `remote` | Push remote, default `origin`. The push URL determines GitLab host/project. |
 | `worktreeRoot` | External directory relative to repository root, or an absolute path. Cannot be inside the repository or its ancestor. Symlink paths are rejected. |

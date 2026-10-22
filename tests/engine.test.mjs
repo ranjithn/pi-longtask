@@ -8,7 +8,7 @@ import { exists, readJson } from '../src/util.mjs';
 test('two-WP campaign creates a real stacked Git history, passing receipts and clean cleanup', async t => {
   const f = await fixture(t); await f.e.run(); const s = f.e.state;
   assert.equal(s.status, 'completed'); assert.equal(s.current, 2); assert.equal(f.gitlab.mrs.size, 2);
-  const [a, b] = s.workPackages; assert.equal(a.target, 'refactor/arch'); assert.equal(b.target, a.branch);
+  const [a, b] = s.workPackages; assert.equal(a.target, 'main'); assert.equal(b.target, a.branch);
   assert.equal(b.baseSha, a.commit); assert.equal(await f.repo.text(['rev-parse', `${b.commit}^`]), a.commit);
   for (const w of s.workPackages) {
     assert.equal(w.ci.sourceSha, w.commit); assert.equal(w.review.tree, w.local.tree);
@@ -67,6 +67,26 @@ test('worker cannot modify the approved specification in its own checkout', asyn
   const f = await fixture(t, { count: 1, worker: async req => { await fs.appendFile(path.join(req.cwd, 'plans/arch/WP00.md'), '\nFake completion\n'); } });
   await assert.rejects(f.e.run(), /Approved campaign input/); assert.equal(f.gitlab.mrs.size, 0);
 });
+test('worker cannot create root instructions that were absent at approval', async t => {
+  const f = await fixture(t, { count: 1, worker: async req => { await fs.writeFile(path.join(req.cwd, 'AGENTS.md'), 'Changed instructions\n'); } });
+  await assert.rejects(f.e.run(), /Approved campaign input/);
+  assert.equal(f.gitlab.mrs.size, 0);
+});
+test('retained worktree must still be clean before completing a resumed cleanup', async t => {
+  const f = await fixture(t, { count: 1, configPatch: { cleanup: false } });
+  const setPhase = f.e.setPhase.bind(f.e);
+  f.e.setPhase = async (wp, phase) => {
+    await setPhase(wp, phase);
+    if (phase === 'cleanup') throw new Error('crash before cleanup');
+  };
+  await assert.rejects(f.e.run(), /crash before cleanup/);
+  const wp = f.e.state.workPackages[0];
+  await fs.appendFile(path.join(wp.worktree, 'README.md'), 'unverified edit\n');
+  const next = await f.engine();
+  await assert.rejects(next.run(), /not clean/);
+  assert.equal(next.state.current, 0);
+  assert.equal(next.state.workPackages[0].status, 'verified');
+});
 test('sensitive files fail before git staging or remote publication', async t => {
   const f = await fixture(t, { count: 1, worker: async req => { await fs.writeFile(path.join(req.cwd, '.env'), 'SECRET=not-real'); } });
   await assert.rejects(f.e.run(), /Sensitive file blocked/); assert.equal(f.gitlab.mrs.size, 0);
@@ -77,7 +97,7 @@ test('unresolved child attempts block resume without spawning a replacement', as
   await assert.rejects(f.e.run(), /earlier child/); assert.equal(f.subagents.calls.length, 1);
 });
 test('existing unowned branches are never adopted', async t => {
-  const f = await fixture(t, { count: 1 }); await f.repo.git(['branch', 'dev/refactor-arch/00']);
+  const f = await fixture(t, { count: 1 }); await f.repo.git(['branch', 'longtask/arch/00']);
   await assert.rejects(f.e.run(), /already exists/); assert.equal(f.gitlab.mrs.size, 0);
 });
 test('verification that mutates tracked source does not receive a green receipt', async t => {
